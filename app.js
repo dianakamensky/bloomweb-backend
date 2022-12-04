@@ -1,20 +1,47 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-
-var app = express();
-
-app.use(logger('dev'));
+const express = require("express");
+const mongoose = require("mongoose");
+require("dotenv").config();
+const cors = require("cors");
+const { PORT = 3000, DBADDRESS, NODE_ENV } = process.env;
+const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+const auth = require("../middleware/auth");
+const { requestLogger, errorLogger } = require("./middleware/logger");
+const { handleError, NotFoundError, HttpError } = require("./utils/errors");
+const { errors } = require("celebrate");
+mongoose.connect(
+  `mongodb://${
+    NODE_ENV === "production" ? DBADDRESS : "localhost:27017/dianadb"
+  }`
+);
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use(requestLogger);
 
-module.exports = app;
+app.use(cors());
+app.options("*", cors());
+
+app.get("/crash-test", () => {
+  setTimeout(() => {
+    throw new HttpError("Server will crash now");
+  }, 0);
+});
+
+app.use(errors());
+
+app.use("/posts", require("./posts"));
+app.use("/users", require("./users"));
+
+app.use(auth);
+
+app.use("/posts", require("./protectedposts"));
+app.use("/users", require("./protectedusers"));
+
+app.get("*", (req, res, next) => {
+  next(new NotFoundError("Requested resource not found"));
+});
+
+app.use((err, req, res, next) => handleError(err, res));
+
+app.use(errorLogger);
+
+app.listen(PORT, () => {});

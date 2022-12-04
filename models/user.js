@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
   pfp: {
     type: String,
   },
+  posts: [{ type: mongoose.ObjectId, ref: "Post"}],
   savedPosts: [{ type: mongoose.ObjectId, ref: "Post" }],
 });
 

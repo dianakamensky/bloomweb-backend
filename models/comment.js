@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const commentSchema = new mongoose.Schema({
-  ownerId: {
+  owner: {
     type: mongoose.ObjectId,
     required: true,
     ref: "User"

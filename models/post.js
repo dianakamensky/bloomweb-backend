@@ -16,7 +16,7 @@ const postSchema = new mongoose.Schema({
   flower: {
     type: String
   },
-  ownerId: {
+  owner: {
     type: mongoose.ObjectId,
     required: true,
     ref: "User"
