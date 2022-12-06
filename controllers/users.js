@@ -62,8 +62,8 @@ function updateUser(req, res, next) {
     { username, pfp, bio },
     { new: true, runValidators: true }
   )
-    .orFail(notFound)
-    .then((data) => res.send({ data }))
+    .orFail(new NotFoundError("User not found"))
+    .then((data) => res.send({ username: data.username, pfp: data.pfp, bio: data.bio }))
     .catch((err) => {
       if (err.name === "MongoServerError" && err.code === 11000) {
         next(new ConflictError("Username already in use"));
@@ -78,13 +78,14 @@ function savePost(req, res, next) {
     { $push: { savedPosts: postId } },
     { new: true, runValidators: true }
   )
-    .orFail(notFound)
+    .orFail(new NotFoundError("User not found"))
     .then((data) => res.send({ data }))
     .catch(next);
 }
 
 function getSavedPosts(req, res, next) {
   User.findById(req.user._id)
+  .populate("savedPosts")
   .orFail(new NotFoundError("User not found"))
   .then((data) =>
     res.send({
@@ -96,6 +97,7 @@ function getSavedPosts(req, res, next) {
 
 function getUserPosts(req, res, next) {
   User.findById(req.user._id)
+  .populate("posts")
   .orFail(new NotFoundError("User not found"))
   .then((data) =>
     res.send({

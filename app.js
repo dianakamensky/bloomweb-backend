@@ -5,13 +5,13 @@ const cors = require("cors");
 const { PORT = 3000, DBADDRESS, NODE_ENV } = process.env;
 const app = express();
 app.use(express.json());
-const auth = require("../middleware/auth");
+const auth = require("./middleware/auth");
 const { requestLogger, errorLogger } = require("./middleware/logger");
 const { handleError, NotFoundError, HttpError } = require("./utils/errors");
 const { errors } = require("celebrate");
 mongoose.connect(
   `mongodb://${
-    NODE_ENV === "production" ? DBADDRESS : "localhost:27017/dianadb"
+    NODE_ENV === "production" ? DBADDRESS : "localhost:27017/bloomwebdb"
   }`
 );
 
@@ -28,13 +28,13 @@ app.get("/crash-test", () => {
 
 app.use(errors());
 
-app.use("/posts", require("./posts"));
-app.use("/users", require("./users"));
+app.use("/posts", require("./routes/posts"));
+app.use("/users", require("./routes/users"));
 
 app.use(auth);
 
-app.use("/posts", require("./protectedposts"));
-app.use("/users", require("./protectedusers"));
+app.use("/posts", require("./routes/protectedposts"));
+app.use("/users", require("./routes/protectedusers"));
 
 app.get("*", (req, res, next) => {
   next(new NotFoundError("Requested resource not found"));

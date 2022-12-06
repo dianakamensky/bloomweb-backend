@@ -1,5 +1,11 @@
 const Post = require("../models/post");
 const Comment = require("../models/comment");
+const User = require("../models/user");
+const {
+  NotFoundError,
+  UnauthorizedError,
+  ConflictError,
+} = require("../utils/errors");
 
 function getPosts(req, res, next) {
   Post.find(req.query)
@@ -30,20 +36,19 @@ function createPost(req, res, next) {
     image,
     owner: req.user._id,
   })
-    .then((post) => {
+    .then((post) =>
       User.findByIdAndUpdate(
         req.user._id,
         { $push: { posts: post._id } },
         { new: true, runValidators: true }
-      );
-      return post;
-    })
+      )
+    )
     .then((data) => res.send({ data }))
     .catch(next);
 }
 
 function getPost(req, res, next) {
-  Post.findOne(req.params.postId)
+  Post.findById(req.params.postId)
     .then((data) => res.send({ data }))
     .catch(next);
 }
