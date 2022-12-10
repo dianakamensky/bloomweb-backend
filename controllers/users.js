@@ -34,7 +34,7 @@ function signIn(req, res, next) {
         .then((result) => {
           if (result) {
             const token = createToken(user._id);
-            res.send({ token });
+            res.send({ token, userId: user._id });
           } else return Promise.reject(new UnauthorizedError());
         })
         .catch(next);
@@ -63,7 +63,9 @@ function updateUser(req, res, next) {
     { new: true, runValidators: true }
   )
     .orFail(new NotFoundError("User not found"))
-    .then((data) => res.send({ username: data.username, pfp: data.pfp, bio: data.bio }))
+    .then((data) =>
+      res.send({ username: data.username, pfp: data.pfp, bio: data.bio })
+    )
     .catch((err) => {
       if (err.name === "MongoServerError" && err.code === 11000) {
         next(new ConflictError("Username already in use"));
@@ -73,9 +75,13 @@ function updateUser(req, res, next) {
 
 function savePost(req, res, next) {
   const { postId } = req.params;
+  const body = req.body;
+  console.log("momo");
   User.findByIdAndUpdate(
     req.user._id,
-    { $push: { savedPosts: postId } },
+    body.save === "true"
+      ? { $push: { savedPosts: postId } }
+      : { $pull: { savedPosts: postId } },
     { new: true, runValidators: true }
   )
     .orFail(new NotFoundError("User not found"))
@@ -85,28 +91,27 @@ function savePost(req, res, next) {
 
 function getSavedPosts(req, res, next) {
   User.findById(req.user._id)
-  .populate("savedPosts")
-  .orFail(new NotFoundError("User not found"))
-  .then((data) =>
-    res.send({
-      savedPosts: data.savedPosts
-    })
-  )
-  .catch(next);
+    .populate("savedPosts")
+    .orFail(new NotFoundError("User not found"))
+    .then((data) =>
+      res.send({
+        savedPosts: data.savedPosts,
+      })
+    )
+    .catch(next);
 }
 
 function getUserPosts(req, res, next) {
   User.findById(req.user._id)
-  .populate("posts")
-  .orFail(new NotFoundError("User not found"))
-  .then((data) =>
-    res.send({
-      posts: data.posts
-    })
-  )
-  .catch(next);
+    .populate("posts")
+    .orFail(new NotFoundError("User not found"))
+    .then((data) =>
+      res.send({
+        posts: data.posts,
+      })
+    )
+    .catch(next);
 }
-
 
 module.exports = {
   signUp,
@@ -115,5 +120,5 @@ module.exports = {
   getUser,
   savePost,
   getSavedPosts,
-  getUserPosts
+  getUserPosts,
 };
