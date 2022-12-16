@@ -49,24 +49,25 @@ function createPost(req, res, next) {
 
 function getPost(req, res, next) {
   Post.findById(req.params.postId)
+  .populate("comments")
     .then((data) => res.send({ data }))
     .catch(next);
 }
 
-function createComment(req, res, next) {
-  const { content } = req.body;
+async function createComment(req, res, next) {
+  const { comment } = req.body;
   const owner = req.user._id;
-  Comment.create({ content, owner })
-    .then((comment) => {
-      Post.findByIdAndUpdate(
-        req.params.postId,
-        { $push: { comments: comment._id } },
-        { new: true, runValidators: true }
-      );
-      return comment;
-    })
-    .then((data) => res.send({ data }))
-    .catch(next);
+  try {
+    const data = await Comment.create({ content: comment, owner });
+    await Post.findByIdAndUpdate(
+      req.params.postId,
+      { $push: { comments: data._id } },
+      { new: true, runValidators: true }
+    ).orFail(new NotFoundError("Post not found"));
+    res.send({ data });
+  } catch(error) {
+    next(error);
+  }
 }
 
 module.exports = {

@@ -75,13 +75,21 @@ function updateUser(req, res, next) {
 
 function savePost(req, res, next) {
   const { postId } = req.params;
-  const body = req.body;
-  console.log("momo");
   User.findByIdAndUpdate(
     req.user._id,
-    body.save === "true"
-      ? { $push: { savedPosts: postId } }
-      : { $pull: { savedPosts: postId } },
+    { $push: { savedPosts: postId } },
+    { new: true, runValidators: true }
+  )
+    .orFail(new NotFoundError("User not found"))
+    .then((data) => res.send({ data }))
+    .catch(next);
+}
+
+function unsavePost(req, res, next) {
+  const { postId } = req.params;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { $pull: { savedPosts: postId } },
     { new: true, runValidators: true }
   )
     .orFail(new NotFoundError("User not found"))
@@ -119,6 +127,7 @@ module.exports = {
   updateUser,
   getUser,
   savePost,
+  unsavePost,
   getSavedPosts,
   getUserPosts,
 };
