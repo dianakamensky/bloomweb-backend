@@ -10,6 +10,8 @@ const requestLogger = expressWinston.logger({
     winston.format.colorize(),
     winston.format.json()
   ),
+  meta: true,
+  level: "debug"
 });
 
 const errorLogger = expressWinston.errorLogger({
@@ -21,6 +23,8 @@ const errorLogger = expressWinston.errorLogger({
     winston.format.colorize(),
     winston.format.json()
   ),
+  meta: true,
+  level: "debug"
 });
 
 module.exports = {
