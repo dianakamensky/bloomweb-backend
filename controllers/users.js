@@ -8,7 +8,7 @@ const {
 const { createToken } = require("../utils/jwt");
 
 function getUser(req, res, next) {
-  User.findById(req.user._id)
+  User.findById(req.params.id || req.user._id)
     .orFail(new NotFoundError("User not found"))
     .then((data) =>
       res.send({
@@ -77,7 +77,7 @@ function savePost(req, res, next) {
   const { postId } = req.params;
   User.findByIdAndUpdate(
     req.user._id,
-    { $push: { savedPosts: postId } },
+    { $addToSet: { savedPosts: postId } },
     { new: true, runValidators: true }
   )
     .orFail(new NotFoundError("User not found"))

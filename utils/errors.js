@@ -12,7 +12,7 @@ class BadRequestError extends HttpError {
 }
 
 class UnauthorizedError extends HttpError {
-  constructor(msg = "Incorrect password or email") {
+  constructor(msg = "Incorrect password or username") {
     super(msg, 401);
   }
 }
